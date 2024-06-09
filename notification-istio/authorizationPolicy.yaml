@@ -1,0 +1,25 @@
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: notification
+  namespace: backend
+spec:
+  selector:
+    matchLabels:
+       app: notification
+  rules:
+    - to:
+        - operation:
+            methods: [ "GET", "PUT" ]
+            paths: [ "/notification" ,"/notification/*" ]
+      from:
+        - source:
+            requestPrincipals: [ "*" ]
+      when:
+        - key: request.auth.claims[realm_access][roles]
+          values: [ "guest", "host" ]
+
+    - to:
+        - operation:
+            methods: [ "GET", "POST", "PUT" ]
+            paths: [ "/ws", "/ws/*" ]
