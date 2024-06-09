@@ -1,0 +1,14 @@
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: notification
+  namespace: backend
+spec:
+  selector:
+    matchLabels:
+     app: notification
+  jwtRules:
+    - forwardOriginalToken: true
+      outputPayloadToHeader: x-jwt-payload
+      issuer: "http://keycloak.backend.svc.cluster.local/realms/Istio"
+      jwksUri: "http://keycloak.backend.svc.cluster.local/realms/Istio/protocol/openid-connect/certs"

@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification
+  namespace: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification
+  template:
+    metadata:
+      labels:
+        app: notification
+        sidecar.istio.io/inject: "true"
+    spec:
+      containers:
+        - name: notification
+          image: devopszms2024/zms-devops-notification-service:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8087
+          envFrom:
+            - configMapRef:
+                name: notification-configmap
+            - configMapRef:
+                name: mongodb-notification-configmap
+            - secretRef:
+                name: mongodb-notification-secret
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "my-kafka.backend.svc.cluster.local:9092"
+            - name: KAFKA_AUTH_PASSWORD
+              value: "6DUnElt7GW"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification
+  namespace: backend
+spec:
+  selector:
+    app: notification
+  ports:
+    - protocol: TCP
+      name: http
+      port: 8087
+      targetPort: 8087
