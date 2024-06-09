@@ -18,6 +18,47 @@ func NewNotificationSettingsService(store domain.UserNotificationSettingsStore, 
 	}
 }
 
+func (service *NotificationSettingsService) Insert(userId, role string) error {
+	var notificationSettings []domain.NotificationSetting
+	if role == domain.RoleGuest {
+		notificationSettings = []domain.NotificationSetting{
+			{
+				Type:   4,
+				Active: true,
+			},
+		}
+	} else if role == domain.HostRole {
+		notificationSettings = []domain.NotificationSetting{
+			{
+				Type:   0,
+				Active: true,
+			},
+			{
+				Type:   1,
+				Active: true,
+			},
+			{
+				Type:   2,
+				Active: true,
+			},
+			{
+				Type:   3,
+				Active: true,
+			},
+		}
+	}
+
+	settings := domain.Settings{
+		UserId:   userId,
+		Settings: notificationSettings,
+	}
+
+	if _, err := service.store.Insert(&settings); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (service *NotificationSettingsService) Update(userId string, userRole string, settingsRequest []domain.NotificationSetting) error {
 	settings, err := service.store.GetByUserId(userId)
 	if err != nil {
@@ -52,6 +93,24 @@ func (service *NotificationSettingsService) Delete(userId string) error {
 	}
 
 	return nil
+}
+
+func (service *NotificationSettingsService) UserIsSubscribedToNotificationType(userId string, notificationType domain.NotificationType) bool {
+	settings, err := service.store.GetByUserId(userId)
+	if err != nil {
+		return false
+	}
+
+	return service.findIfUserHasSpecificActiveNotification(settings, notificationType)
+}
+
+func (service *NotificationSettingsService) findIfUserHasSpecificActiveNotification(settings *domain.Settings, notificationType domain.NotificationType) bool {
+	for _, setting := range settings.Settings {
+		if setting.Active && setting.Type == notificationType {
+			return true
+		}
+	}
+	return false
 }
 
 func (service *NotificationSettingsService) filterNotificationSettings(settings []domain.NotificationSetting, notificationType domain.NotificationType) []domain.NotificationSetting {
