@@ -2,10 +2,12 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gorilla/mux"
 	"github.com/mmmajder/zms-devops-notification-service/application"
 	"github.com/mmmajder/zms-devops-notification-service/domain"
 	"github.com/mmmajder/zms-devops-notification-service/infrastructure/request"
+	"log"
 	"net/http"
 )
 
@@ -85,4 +87,20 @@ func (handler *NotificationSettingsHandler) DeleteSettings(w http.ResponseWriter
 	}
 
 	writeResponse(w, http.StatusOK, nil)
+}
+
+func (handler *NotificationSettingsHandler) OnUserCreated(message *kafka.Message) {
+	var userCreatedNotificationRequest request.UserCreatedNotificationRequest
+	if err := json.Unmarshal(message.Value, &userCreatedNotificationRequest); err != nil {
+		log.Printf("Error unmarshalling user created user request: %v", err)
+	}
+
+	handler.onCreateUserNotification(userCreatedNotificationRequest)
+}
+
+func (handler *NotificationSettingsHandler) onCreateUserNotification(createdUser request.UserCreatedNotificationRequest) {
+	if err := handler.settingsService.Insert(createdUser.UserId, createdUser.Role); err != nil {
+
+		return
+	}
 }
