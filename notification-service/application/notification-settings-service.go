@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/mmmajder/zms-devops-notification-service/domain"
 	"github.com/mmmajder/zms-devops-notification-service/infrastructure/dto"
+	"log"
 	"net/http"
 )
 
@@ -20,6 +21,7 @@ func NewNotificationSettingsService(store domain.UserNotificationSettingsStore, 
 
 func (service *NotificationSettingsService) Insert(userId, role string) error {
 	var notificationSettings []domain.NotificationSetting
+	log.Printf("userId: %s, role: %s", userId, role)
 	if role == domain.RoleGuest {
 		notificationSettings = []domain.NotificationSetting{
 			{
@@ -56,6 +58,8 @@ func (service *NotificationSettingsService) Insert(userId, role string) error {
 	if _, err := service.store.Insert(&settings); err != nil {
 		return err
 	}
+
+	log.Printf("userId: %s, role: %s", userId, role)
 	return nil
 }
 
