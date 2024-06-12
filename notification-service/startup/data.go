@@ -24,7 +24,7 @@ var notificationSettings = []domain.NotificationSetting{
 }
 var settings = []*domain.Settings{
 	{
-		UserId:   "57325353-5469-4930-8ec9-35c003e1b967",
+		UserId:   "77475f63-6c4c-4c55-96f4-9f91ef41be09",
 		Settings: notificationSettings,
 	},
 }

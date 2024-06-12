@@ -64,7 +64,7 @@ func (handler *NotificationHandler) OnHostRated(message *kafka.Message) {
 func (handler *NotificationHandler) OnAccommodationRated(message *kafka.Message) {
 	notificationRequest := handler.getNotificationRequest(message)
 
-	handler.onCreateNewNotification(notificationRequest, "accommodation/"+notificationRequest.ReceiverId, true, domain.NotificationType(3), notificationRequest.StartActionUserName+" has reviewed your accommodation. Check for more details.")
+	handler.onCreateNewNotification(notificationRequest, "accommodation/"+notificationRequest.AccommodationId, true, domain.NotificationType(3), notificationRequest.StartActionUserName+" has reviewed your accommodation. Check for more details.")
 }
 
 func (handler *NotificationHandler) OnHostRespondedToReservationRequest(message *kafka.Message) {

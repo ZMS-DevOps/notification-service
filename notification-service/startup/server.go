@@ -75,7 +75,6 @@ func (server *Server) initBellNotificationStore(client *mongo.Client) domain.Bel
 
 func (server *Server) initNotificationSettingsStore(client *mongo.Client) domain.UserNotificationSettingsStore {
 	store := persistence.NewNotificationSettingsMongoDBStore(client)
-	store.DeleteAll()
 	for _, setting := range settings {
 		_, _ = store.Insert(setting)
 	}
