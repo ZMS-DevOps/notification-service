@@ -4,7 +4,7 @@ import (
 	"github.com/mmmajder/zms-devops-notification-service/domain"
 )
 
-var notificationSettings = []domain.NotificationSetting{
+var notificationSettingsForHost = []domain.NotificationSetting{
 	{
 		Type:   1,
 		Active: true,
@@ -22,9 +22,20 @@ var notificationSettings = []domain.NotificationSetting{
 		Active: true,
 	},
 }
+
+var notificationSettingsForGuest = []domain.NotificationSetting{
+	{
+		Type:   4,
+		Active: true,
+	},
+}
 var settings = []*domain.Settings{
 	{
-		UserId:   "77475f63-6c4c-4c55-96f4-9f91ef41be09",
-		Settings: notificationSettings,
+		UserId:   "3f92c83e-966d-41e6-8bb5-c076737d89ee",
+		Settings: notificationSettingsForHost,
+	},
+	{
+		UserId:   "f3c0120b-39f3-45cf-a771-e062c6932ce2",
+		Settings: notificationSettingsForGuest,
 	},
 }
