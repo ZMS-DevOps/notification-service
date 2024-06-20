@@ -1,8 +1,11 @@
 package application
 
 import (
+	"github.com/afiskon/promtail-client/promtail"
 	"github.com/mmmajder/zms-devops-notification-service/domain"
 	"github.com/mmmajder/zms-devops-notification-service/infrastructure/dto"
+	"github.com/mmmajder/zms-devops-notification-service/util"
+	"go.opentelemetry.io/otel/trace"
 	"log"
 	"net/http"
 )
@@ -10,16 +13,18 @@ import (
 type NotificationSettingsService struct {
 	store      domain.UserNotificationSettingsStore
 	HttpClient *http.Client
+	loki       promtail.Client
 }
 
-func NewNotificationSettingsService(store domain.UserNotificationSettingsStore, httpClient *http.Client) *NotificationSettingsService {
+func NewNotificationSettingsService(store domain.UserNotificationSettingsStore, httpClient *http.Client, loki promtail.Client) *NotificationSettingsService {
 	return &NotificationSettingsService{
 		store:      store,
 		HttpClient: httpClient,
+		loki:       loki,
 	}
 }
 
-func (service *NotificationSettingsService) Insert(userId, role string) error {
+func (service *NotificationSettingsService) Insert(userId, role string, span trace.Span, loki promtail.Client) error {
 	var notificationSettings []domain.NotificationSetting
 	log.Printf("userId: %s, role: %s", userId, role)
 	if role == domain.RoleGuest {
@@ -55,6 +60,7 @@ func (service *NotificationSettingsService) Insert(userId, role string) error {
 		Settings: notificationSettings,
 	}
 
+	util.HttpTraceInfo("Inserting review...", span, loki, "Insert", "")
 	if _, err := service.store.Insert(&settings); err != nil {
 		return err
 	}
@@ -63,7 +69,8 @@ func (service *NotificationSettingsService) Insert(userId, role string) error {
 	return nil
 }
 
-func (service *NotificationSettingsService) Update(userId string, userRole string, settingsRequest []domain.NotificationSetting) error {
+func (service *NotificationSettingsService) Update(userId string, userRole string, settingsRequest []domain.NotificationSetting, span trace.Span, loki promtail.Client) error {
+	util.HttpTraceInfo("Inserting review...", span, loki, "Update", "")
 	settings, err := service.store.GetByUserId(userId)
 	if err != nil {
 		return err
@@ -73,6 +80,7 @@ func (service *NotificationSettingsService) Update(userId string, userRole strin
 	} else {
 		settings.Settings = service.filterNotificationSettings(settingsRequest, domain.ReviewReservation)
 	}
+	util.HttpTraceInfo("Inserting review...", span, loki, "Update", "")
 	err = service.store.Update(settings.Id, settings)
 	if err != nil {
 		return err
@@ -81,7 +89,8 @@ func (service *NotificationSettingsService) Update(userId string, userRole strin
 	return nil
 }
 
-func (service *NotificationSettingsService) Get(userId string) (*[]dto.NotificationSettingDTO, error) {
+func (service *NotificationSettingsService) Get(userId string, span trace.Span, loki promtail.Client) (*[]dto.NotificationSettingDTO, error) {
+	util.HttpTraceInfo("Inserting review...", span, loki, "Get", "")
 	settings, err := service.store.GetByUserId(userId)
 	if err != nil {
 		return nil, err
@@ -90,7 +99,8 @@ func (service *NotificationSettingsService) Get(userId string) (*[]dto.Notificat
 	return dto.FromUserNotificationSettings(settings), nil
 }
 
-func (service *NotificationSettingsService) Delete(userId string) error {
+func (service *NotificationSettingsService) Delete(userId string, span trace.Span, loki promtail.Client) error {
+	util.HttpTraceInfo("Inserting review...", span, loki, "Delete", "")
 	err := service.store.DeleteByUserId(userId)
 	if err != nil {
 		return err
@@ -99,7 +109,8 @@ func (service *NotificationSettingsService) Delete(userId string) error {
 	return nil
 }
 
-func (service *NotificationSettingsService) UserIsSubscribedToNotificationType(userId string, notificationType domain.NotificationType) bool {
+func (service *NotificationSettingsService) UserIsSubscribedToNotificationType(userId string, notificationType domain.NotificationType, span trace.Span, loki promtail.Client) bool {
+	util.HttpTraceInfo("Inserting review...", span, loki, "UserIsSubscribedToNotificationType", "")
 	settings, err := service.store.GetByUserId(userId)
 	if err != nil {
 		return false

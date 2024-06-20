@@ -2,6 +2,7 @@ package startup
 
 import (
 	"fmt"
+	"github.com/afiskon/promtail-client/promtail"
 	"github.com/gorilla/mux"
 	"github.com/mmmajder/zms-devops-notification-service/application"
 	"github.com/mmmajder/zms-devops-notification-service/domain"
@@ -9,6 +10,7 @@ import (
 	"github.com/mmmajder/zms-devops-notification-service/infrastructure/persistence"
 	"github.com/mmmajder/zms-devops-notification-service/startup/config"
 	"go.mongodb.org/mongo-driver/mongo"
+	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"log"
 	"net/http"
 )
@@ -18,12 +20,16 @@ type Server struct {
 	router              *mux.Router
 	SettingsHandler     *api.NotificationSettingsHandler
 	NotificationHandler *api.NotificationHandler
+	traceProvider       *sdktrace.TracerProvider
+	loki                promtail.Client
 }
 
-func NewServer(config *config.Config) *Server {
+func NewServer(config *config.Config, traceProvider *sdktrace.TracerProvider, loki promtail.Client) *Server {
 	handler := &Server{
-		config: config,
-		router: mux.NewRouter(),
+		config:        config,
+		router:        mux.NewRouter(),
+		traceProvider: traceProvider,
+		loki:          loki,
 	}
 
 	notificationHandler, settingsHandler := handler.setupHandlers()
@@ -54,11 +60,11 @@ func (server *Server) setupHandlers() (*api.NotificationHandler, *api.Notificati
 
 func (server *Server) initSettingsService(store domain.UserNotificationSettingsStore) *application.NotificationSettingsService {
 
-	return application.NewNotificationSettingsService(store, &http.Client{})
+	return application.NewNotificationSettingsService(store, &http.Client{}, server.loki)
 }
 
 func (server *Server) initSettingsHandler(settingsService *application.NotificationSettingsService) *api.NotificationSettingsHandler {
-	return api.NewNotificationSettingsHandler(settingsService)
+	return api.NewNotificationSettingsHandler(settingsService, server.traceProvider, server.loki)
 }
 
 func (server *Server) initMongoClient() *mongo.Client {
@@ -82,9 +88,9 @@ func (server *Server) initNotificationSettingsStore(client *mongo.Client) domain
 }
 
 func (server *Server) initBellNotificationService(store domain.BellNotificationStore) *application.BellNotificationService {
-	return application.NewBellNotificationService(store, &http.Client{})
+	return application.NewBellNotificationService(store, &http.Client{}, server.loki)
 }
 
 func (server *Server) initNotificationHandler(service *application.BellNotificationService, settingsService *application.NotificationSettingsService) *api.NotificationHandler {
-	return api.NewNotificationHandler(service, settingsService)
+	return api.NewNotificationHandler(service, settingsService, server.traceProvider, server.loki)
 }
