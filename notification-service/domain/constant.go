@@ -1,6 +1,7 @@
 package domain
 
 const (
+	ServiceName                 string = "notification-service"
 	NotificationContextPath     string = "/notification"
 	BellNotificationContextPath string = "/notification/bell"
 	ContentType                 string = "Content-Type"
